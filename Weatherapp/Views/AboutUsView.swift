@@ -1,46 +1,79 @@
-//
-//  AboutUsView.swift
-//  Weatherapp
-//
-//  Created by Darya Mansouri on 2025-02-27.
-//
-
 import SwiftUI
 
 struct AboutUsView: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("🌤️ Weather App")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+        ScrollView {
+            VStack(alignment: .center, spacing: 15) {
+                Text("About Our Weather App")
+                    .font(.title)
+                    .bold()
+                    .foregroundColor(.white)
 
-            Text("This app provides real-time weather updates, a 7-day forecast, and saved locations for easy access.")
-                .padding(.bottom, 20)
+                Text("Welcome to Weather App, your simple and reliable weather companion! ☀️")
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.white)
+                    .padding(.horizontal)
 
-            Text("✅ Features:")
-                .font(.title2)
-                .bold()
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Image(systemName: "checkmark.square.fill")
+                            .foregroundColor(.green)
+                        Text("Check real-time weather updates for any city.")
+                            .foregroundColor(.white)
+                    }
+                    
+                    HStack {
+                        Image(systemName: "checkmark.square.fill")
+                            .foregroundColor(.green)
+                        Text("View temperature, humidity, and wind speed at a glance.")
+                            .foregroundColor(.white)
+                    }
+                    
+                    HStack {
+                        Image(systemName: "checkmark.square.fill")
+                            .foregroundColor(.green)
+                        Text("Save your favorite locations for quick access.")
+                            .foregroundColor(.white)
+                    }
+                }
+                .padding()
 
-            VStack(alignment: .leading) {
-                Text("• Real-time weather updates")
-                Text("• 7-day forecast")
-                Text("• Saved locations")
-                Text("• Minimalist UI")
+                Text("Designed with a clean and intuitive interface, Weather App ensures you stay informed about the weather wherever you go! 🌟")
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.white)
+                    .padding(.horizontal)
+
+                Text("Would you like to add developer credits or a version number? 😊")
+                    .font(.body)
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+
+                VStack(alignment: .center, spacing: 5) {
+                    Text("This App is created by:")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    Text("Dorsa Mohammadi\n101397591")
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                    
+                    Text("Darya Mansouri\n101394900")
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                    
+                    Text("Yasaman Mirvahabi Sabet\n101217770")
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                }
+                .padding()
             }
-            .padding(.leading)
-
-            Text("👩‍💻 Developed by:")
-                .font(.title2)
-                .bold()
-
-            Text("📌 Yasaman Mirvahabi Sabet – 101217770")
-            Text("📌 Dorsa Mohammadi – 101397591")
-            Text("📌 Darya Mansouri – 101394900")
-
-            Spacer()
+            .padding()
         }
-        .padding()
-        .navigationTitle("About Us")
+        .frame(maxWidth: .infinity)
+        .background(Color.purple.opacity(0.6).edgesIgnoringSafeArea(.all))
     }
 }
 

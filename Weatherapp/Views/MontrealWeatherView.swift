@@ -1,13 +1,13 @@
 import SwiftUI
 
-struct CurrentWeatherView: View {
+struct MontrealWeatherView: View {
     @State private var searchText: String = ""
-    @State private var cityName: String = "Toronto"
-    @State private var temperature: String = "-6"
-    @State private var weatherCondition: String = "Cloudy"
+    @State private var cityName: String = "Montreal"
+    @State private var temperature: String = "-10"
+    @State private var weatherCondition: String = "Mostly Sunny ☀️"
     @State private var forecast: [(day: String, high: String, low: String)] = [
-        ("Sat", "-9°", "-1°"), ("Sun", "-10°", "-4°"), ("Mon", "-13°", "-7°"),
-        ("Tue", "-15°", "-10°"), ("Wed", "-17°", "-8°"), ("Thu", "-15°", "-9°"), ("Fri", "-11°", "-4°")
+        ("Sat", "-8°", "-15°"), ("Sun", "-7°", "-13°"), ("Mon", "-6°", "-12°"),
+        ("Tue", "-5°", "-10°"), ("Wed", "-4°", "-9°"), ("Thu", "-3°", "-8°"), ("Fri", "-2°", "-7°")
     ]
 
     var body: some View {
@@ -16,26 +16,23 @@ struct CurrentWeatherView: View {
                 
                 // Search Bar
                 HStack {
-                    TextField("Search City ...", text: $searchText)
+                    TextField("", text: $searchText)
                         .padding(10)
                         .background(Color.white.opacity(0.8))
                         .cornerRadius(10)
                         .foregroundColor(.black)
                         .overlay(
-                            HStack {
-                                Spacer()
-                                if !searchText.isEmpty {
-                                    Button(action: { searchText = "" }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.gray)
-                                            .padding(.trailing, 8)
-                                    }
+                            ZStack(alignment: .leading) {
+                                if searchText.isEmpty {
+                                    Text("Search City ...")
+                                        .foregroundColor(.black.opacity(0.7))
+                                        .padding(.leading, 10)
                                 }
                             }
                         )
 
                     Button(action: {
-                        // Add functionality if voice search is implemented
+                        // Add functionality for search
                     }) {
                         Image(systemName: "mic.fill")
                             .foregroundColor(.white)
@@ -46,7 +43,6 @@ struct CurrentWeatherView: View {
                 }
                 .padding(.horizontal)
 
-
                 // Weather Information
                 HStack {
                     VStack(alignment: .leading) {
@@ -54,15 +50,15 @@ struct CurrentWeatherView: View {
                             .font(.title)
                             .bold()
                         
-                        Text("Fri, Feb 14, 1:45 PM")
+                        Text("Sat, Mar 2, 12:00 PM")
                             .font(.subheadline)
                             .foregroundColor(.gray)
                         
-                        Image(systemName: "cloud.fill") // Weather Icon
+                        Image(systemName: "sun.max.fill") // Sunny Icon
                             .resizable()
                             .scaledToFit()
                             .frame(width: 50, height: 50)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.yellow)
                     }
                     
                     Spacer()
@@ -101,11 +97,11 @@ struct CurrentWeatherView: View {
                 .padding(.horizontal)
 
                 // City Illustration
-                Image(systemName: "building.2.fill") // Replace with actual skyline image
+                Image(systemName: "building.2.fill")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 200, height: 100)
-                    .foregroundColor(.white.opacity(0.9)) // Darker placeholder image
+                    .foregroundColor(.white.opacity(0.9))
             }
             .padding()
         }
@@ -115,5 +111,5 @@ struct CurrentWeatherView: View {
 }
 
 #Preview {
-    CurrentWeatherView()
+    MontrealWeatherView()
 }
