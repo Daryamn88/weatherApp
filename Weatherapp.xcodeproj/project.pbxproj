@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0EB3EFBF2D727F0A0031C841 /* MontrealWeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EB3EFBE2D727F0A0031C841 /* MontrealWeatherView.swift */; };
-		0EB3EFC12D727F1D0031C841 /* VancouverWeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EB3EFC02D727F1D0031C841 /* VancouverWeatherView.swift */; };
 		2A14DC6F2D70CB0600B42452 /* WeatherappApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A14DC6E2D70CB0600B42452 /* WeatherappApp.swift */; };
 		2A14DC712D70CB0600B42452 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A14DC702D70CB0600B42452 /* ContentView.swift */; };
 		2A14DC732D70CB0700B42452 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A14DC722D70CB0700B42452 /* Assets.xcassets */; };
@@ -42,8 +40,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0EB3EFBE2D727F0A0031C841 /* MontrealWeatherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MontrealWeatherView.swift; sourceTree = "<group>"; };
-		0EB3EFC02D727F1D0031C841 /* VancouverWeatherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VancouverWeatherView.swift; sourceTree = "<group>"; };
 		2A14DC6B2D70CB0600B42452 /* Weatherapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Weatherapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2A14DC6E2D70CB0600B42452 /* WeatherappApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherappApp.swift; sourceTree = "<group>"; };
 		2A14DC702D70CB0600B42452 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -161,8 +157,6 @@
 				2A14DCA02D70E0A600B42452 /* AboutUsView.swift */,
 				2A14DCA22D70E1BD00B42452 /* CurrentWeatherView.swift */,
 				2A14DCA42D70E24D00B42452 /* SavedLocationsView.swift */,
-				0EB3EFBE2D727F0A0031C841 /* MontrealWeatherView.swift */,
-				0EB3EFC02D727F1D0031C841 /* VancouverWeatherView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -300,11 +294,9 @@
 				2A14DCA72D70E6DF00B42452 /* WeatherService.swift in Sources */,
 				2A14DC712D70CB0600B42452 /* ContentView.swift in Sources */,
 				2A14DCA12D70E0A600B42452 /* AboutUsView.swift in Sources */,
-				0EB3EFC12D727F1D0031C841 /* VancouverWeatherView.swift in Sources */,
 				2A14DC9F2D70D68000B42452 /* HomeView.swift in Sources */,
 				2A14DCA32D70E1BD00B42452 /* CurrentWeatherView.swift in Sources */,
 				2A14DCA52D70E24D00B42452 /* SavedLocationsView.swift in Sources */,
-				0EB3EFBF2D727F0A0031C841 /* MontrealWeatherView.swift in Sources */,
 				2A14DC6F2D70CB0600B42452 /* WeatherappApp.swift in Sources */,
 				2A14DC9A2D70D24000B42452 /* LocationManager.swift in Sources */,
 			);
@@ -472,6 +464,8 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Weatherapp/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "We need your location to fetch weather updates.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to fetch weather updates.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -500,6 +494,8 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Weatherapp/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "We need your location to fetch weather updates.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to fetch weather updates.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

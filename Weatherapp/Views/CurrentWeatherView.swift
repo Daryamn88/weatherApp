@@ -1,64 +1,30 @@
 import SwiftUI
 
 struct CurrentWeatherView: View {
-    @State private var searchText: String = ""
-    @State private var cityName: String = "Toronto"
-    @State private var temperature: String = "-6"
-    @State private var weatherCondition: String = "Cloudy"
-    @State private var forecast: [(day: String, high: String, low: String)] = [
-        ("Sat", "-9°", "-1°"), ("Sun", "-10°", "-4°"), ("Mon", "-13°", "-7°"),
-        ("Tue", "-15°", "-10°"), ("Wed", "-17°", "-8°"), ("Thu", "-15°", "-9°"), ("Fri", "-11°", "-4°")
-    ]
+    var city: String // Accepts city name as a parameter
+
+    @State private var temperature: String = "--"
+    @State private var weatherCondition: String = "Loading..."
+    @State private var forecast: [(day: String, high: String, low: String)] = []
+
+    private let weatherService = WeatherService()
 
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 
-                // Search Bar
-                HStack {
-                    TextField("Search City ...", text: $searchText)
-                        .padding(10)
-                        .background(Color.white.opacity(0.8))
-                        .cornerRadius(10)
-                        .foregroundColor(.black)
-                        .overlay(
-                            HStack {
-                                Spacer()
-                                if !searchText.isEmpty {
-                                    Button(action: { searchText = "" }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.gray)
-                                            .padding(.trailing, 8)
-                                    }
-                                }
-                            }
-                        )
-
-                    Button(action: {
-                        // Add functionality if voice search is implemented
-                    }) {
-                        Image(systemName: "mic.fill")
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(Color.gray.opacity(0.7))
-                            .clipShape(Circle())
-                    }
-                }
-                .padding(.horizontal)
-
-
                 // Weather Information
                 HStack {
                     VStack(alignment: .leading) {
-                        Text(cityName)
+                        Text(city)
                             .font(.title)
                             .bold()
                         
-                        Text("Fri, Feb 14, 1:45 PM")
+                        Text(weatherCondition)
                             .font(.subheadline)
                             .foregroundColor(.gray)
                         
-                        Image(systemName: "cloud.fill") // Weather Icon
+                        Image(systemName: getWeatherIcon(for: weatherCondition))
                             .resizable()
                             .scaledToFit()
                             .frame(width: 50, height: 50)
@@ -67,7 +33,7 @@ struct CurrentWeatherView: View {
                     
                     Spacer()
                     
-                    Text("\(temperature)°")
+                    Text("\(temperature)°C")
                         .font(.system(size: 50, weight: .bold))
                 }
                 .padding()
@@ -81,39 +47,100 @@ struct CurrentWeatherView: View {
                         .font(.headline)
                         .padding(.top)
 
-                    HStack {
-                        ForEach(forecast, id: \.day) { day in
-                            VStack {
-                                Text(day.day)
-                                    .font(.caption)
-                                    .bold()
-                                Text(day.high)
-                                Text(day.low)
-                                    .foregroundColor(.gray)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(forecast, id: \.day) { day in
+                                VStack {
+                                    Text(day.day)
+                                        .font(.caption)
+                                        .bold()
+                                    Text(day.high)
+                                    Text(day.low)
+                                        .foregroundColor(.gray)
+                                }
+                                .padding()
+                                .frame(width: 60)
+                                .background(Color.white.opacity(0.3))
+                                .cornerRadius(10)
                             }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.white.opacity(0.3))
-                            .cornerRadius(10)
                         }
+                        .padding(.horizontal)
                     }
                 }
                 .padding(.horizontal)
-
-                // City Illustration
-                Image(systemName: "building.2.fill") // Replace with actual skyline image
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 100)
-                    .foregroundColor(.white.opacity(0.9)) // Darker placeholder image
             }
             .padding()
         }
         .frame(maxWidth: .infinity)
         .background(Color.purple.opacity(0.3).edgesIgnoringSafeArea(.all))
+        .onAppear {
+            fetchWeather(for: city)
+        }
+    }
+
+    // Fetch Weather
+    private func fetchWeather(for city: String) {
+        weatherService.fetchCurrentWeather(city: city) { weather in
+            if let weather = weather {
+                DispatchQueue.main.async {
+                    self.temperature = String(format: "%.0f", weather.main.temp)
+                    self.weatherCondition = weather.weather.first?.description.capitalized ?? "Unknown"
+                }
+            }
+        }
+        
+        weatherService.fetchWeatherForecast(city: city) { forecastResponse in
+            if let forecastResponse = forecastResponse {
+                DispatchQueue.main.async {
+                    self.forecast = self.processForecastData(forecastResponse)
+                }
+            }
+        }
+    }
+
+    // Process and Group Forecast Data
+    private func processForecastData(_ forecastResponse: ForecastResponse) -> [(day: String, high: String, low: String)] {
+        var dailyForecast: [String: (high: Double, low: Double)] = [:]
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+        let dayFormatter = DateFormatter()
+        dayFormatter.dateFormat = "E" // Extracts weekday name
+
+        let today = Calendar.current.startOfDay(for: Date()) // Get today's date
+
+        for item in forecastResponse.list {
+            if let date = dateFormatter.date(from: item.dt_txt) {
+                let dayKey = dayFormatter.string(from: date) // Convert to weekday name
+
+                if dailyForecast[dayKey] == nil {
+                    dailyForecast[dayKey] = (high: item.main.temp, low: item.main.temp)
+                } else {
+                    dailyForecast[dayKey]!.high = max(dailyForecast[dayKey]!.high, item.main.temp)
+                    dailyForecast[dayKey]!.low = min(dailyForecast[dayKey]!.low, item.main.temp)
+                }
+            }
+        }
+
+        // Sort forecast by weekday and limit to 7 days
+        return dailyForecast.sorted(by: { $0.key < $1.key }).prefix(7).map { (day, temps) in
+            return (day, String(format: "%.0f°C", temps.high), String(format: "%.0f°C", temps.low))
+        }
+    }
+
+    // Get SF Symbol for Weather Condition
+    private func getWeatherIcon(for condition: String) -> String {
+        switch condition.lowercased() {
+            case let str where str.contains("cloud"): return "cloud.fill"
+            case let str where str.contains("rain"): return "cloud.rain.fill"
+            case let str where str.contains("clear"): return "sun.max.fill"
+            case let str where str.contains("snow"): return "snowflake"
+            default: return "cloud.fill"
+        }
     }
 }
 
 #Preview {
-    CurrentWeatherView()
+    CurrentWeatherView(city: "Toronto")
 }
