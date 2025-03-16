@@ -24,33 +24,7 @@ struct HomeView: View {
 
                 Spacer()
                 
-                // Search Bar for Selecting City
-                HStack {
-                    TextField("Search City ...", text: $searchText, onCommit: {
-                        if !searchText.isEmpty {
-                            selectedCity = searchText // Update city when searched
-                            searchText = "" // Clear search field
-                        }
-                    })
-                    .padding(10)
-                    .background(Color.white.opacity(0.8))
-                    .cornerRadius(10)
-                    .foregroundColor(.black)
-                    
-                    Button(action: {
-                        if !searchText.isEmpty {
-                            selectedCity = searchText
-                            searchText = ""
-                        }
-                    }) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(Color.gray.opacity(0.7))
-                            .clipShape(Circle())
-                    }
-                }
-                .padding(.horizontal)
+                
 
                 // Buttons
                 NavigationLink(destination: AboutUsView()) {

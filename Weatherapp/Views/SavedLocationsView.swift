@@ -2,11 +2,27 @@ import SwiftUI
 
 struct SavedLocationsView: View {
     @State private var searchText: String = ""
+    
+    // FIX: Encode/Decode Array in @AppStorage
+    @AppStorage("savedCities") private var savedCitiesData: String = "[]"
+    private var savedCities: [String] {
+        get {
+            if let data = savedCitiesData.data(using: .utf8),
+               let decoded = try? JSONDecoder().decode([String].self, from: data) {
+                return decoded
+            }
+            return []
+        }
+        set {
+            if let encoded = try? JSONEncoder().encode(newValue),
+               let jsonString = String(data: encoded, encoding: .utf8) {
+                savedCitiesData = jsonString
+            }
+        }
+    }
+
     @State private var savedLocations: [WeatherData] = []
     private let weatherService = WeatherService()
-
-    // Sample saved cities (User can add more in the future)
-    private let cityList = ["Toronto", "Montreal", "Vancouver", "Calgary", "Ottawa"]
 
     var filteredLocations: [WeatherData] {
         if searchText.isEmpty {
@@ -18,19 +34,21 @@ struct SavedLocationsView: View {
 
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    
-                    // Search Bar
-                    searchBarView()
+            VStack {
+                searchBarView()
 
-                    // Saved Locations List
+                if savedCities.isEmpty {
+                    Text("No saved locations yet.")
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding()
+                } else {
                     locationsListView()
                 }
-                .padding()
             }
+            .padding()
             .frame(maxWidth: .infinity)
             .background(Color.purple.opacity(0.3).edgesIgnoringSafeArea(.all))
+            .navigationTitle("Saved Locations")
         }
         .onAppear {
             fetchWeatherForSavedLocations()
@@ -63,24 +81,18 @@ struct SavedLocationsView: View {
 
     // MARK: - Locations List UI
     private func locationsListView() -> some View {
-        VStack(spacing: 15) {
-            if filteredLocations.isEmpty {
-                Text("No results found")
-                    .foregroundColor(.white.opacity(0.7))
-                    .padding()
-            } else {
-                ForEach(filteredLocations, id: \.city) { location in
-                    locationCardView(for: location)
-                }
+        List {
+            ForEach(filteredLocations, id: \.city) { location in
+                locationCardView(for: location)
             }
+            .onDelete(perform: deleteCity) // Enable swipe to delete
         }
-        .padding(.horizontal)
+        .listStyle(PlainListStyle())
     }
 
     // MARK: - Single Location Card UI
     private func locationCardView(for location: WeatherData) -> some View {
-        NavigationLink(destination: CurrentWeatherView(city: location.city))
- {
+        NavigationLink(destination: CurrentWeatherView(city: location.city)) {
             VStack(alignment: .leading) {
                 HStack {
                     Text(location.city)
@@ -117,12 +129,41 @@ struct SavedLocationsView: View {
         }
     }
 
+    // MARK: - Swipe to Delete Function
+    private func deleteCity(at offsets: IndexSet) {
+        for index in offsets {
+            let cityToDelete = savedLocations[index].city
+            
+            // Convert savedCitiesData from JSON string to an array
+            var cities = savedCities
+            cities.removeAll { $0 == cityToDelete }
+            
+            // Convert back to JSON string for storage
+            if let encoded = try? JSONEncoder().encode(cities),
+               let jsonString = String(data: encoded, encoding: .utf8) {
+                savedCitiesData = jsonString // Update AppStorage
+            }
+        }
+        savedLocations.remove(atOffsets: offsets) // Remove from UI list
+    }
+
+        // MARK: - Convert Weather Description to SF Symbols
+         func getWeatherIcon(for condition: String) -> String {
+            switch condition.lowercased() {
+                case let str where str.contains("cloud"): return "cloud.fill"
+                case let str where str.contains("rain"): return "cloud.rain.fill"
+                case let str where str.contains("clear"): return "sun.max.fill"
+                case let str where str.contains("snow"): return "snowflake"
+                default: return "cloud.fill"
+            }
+        }
+        
     // MARK: - Fetch Weather Data for Saved Locations
-    private func fetchWeatherForSavedLocations() {
+     func fetchWeatherForSavedLocations() {
         var updatedLocations: [WeatherData] = []
         let group = DispatchGroup()
 
-        for city in cityList {
+        for city in savedCities {
             group.enter()
             weatherService.fetchCurrentWeather(city: city) { weather in
                 if let weather = weather {
@@ -132,7 +173,7 @@ struct SavedLocationsView: View {
                         condition: weather.weather.first?.description.capitalized ?? "Unknown",
                         high: String(format: "%.0f", weather.main.temp + 3),
                         low: String(format: "%.0f", weather.main.temp - 3),
-                        icon: self.getWeatherIcon(for: weather.weather.first?.description ?? "")
+                        icon: getWeatherIcon(for: weather.weather.first?.description ?? "")
                     )
                     updatedLocations.append(weatherData)
                 }
@@ -142,17 +183,6 @@ struct SavedLocationsView: View {
 
         group.notify(queue: .main) {
             self.savedLocations = updatedLocations
-        }
-    }
-
-    // MARK: - Convert Weather Description to SF Symbols
-    private func getWeatherIcon(for condition: String) -> String {
-        switch condition.lowercased() {
-            case let str where str.contains("cloud"): return "cloud.fill"
-            case let str where str.contains("rain"): return "cloud.rain.fill"
-            case let str where str.contains("clear"): return "sun.max.fill"
-            case let str where str.contains("snow"): return "snowflake"
-            default: return "cloud.fill"
         }
     }
 }
