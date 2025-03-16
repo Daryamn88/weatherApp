@@ -34,24 +34,28 @@ struct SavedLocationsView: View {
 
     var body: some View {
         NavigationView {
-            VStack {
-                searchBarView()
-
-                if savedCities.isEmpty {
-                    Text("No saved locations yet.")
-                        .foregroundColor(.white.opacity(0.7))
-                        .padding()
-                } else {
-                    locationsListView()
+            ZStack {
+                // Set background color same as CurrentWeatherView
+                Color.purple.opacity(0.3).edgesIgnoringSafeArea(.all)
+                VStack {
+                    searchBarView()
+                    
+                    if savedCities.isEmpty {
+                        Text("No saved locations yet.")
+                            .foregroundColor(.white.opacity(0.7))
+                            .padding()
+                    } else {
+                        locationsListView()
+                    }
                 }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.purple.opacity(0.3).edgesIgnoringSafeArea(.all))
+                .navigationTitle("Saved Locations")
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color.purple.opacity(0.3).edgesIgnoringSafeArea(.all))
-            .navigationTitle("Saved Locations")
-        }
-        .onAppear {
-            fetchWeatherForSavedLocations()
+            .onAppear {
+                fetchWeatherForSavedLocations()
+            }
         }
     }
 
@@ -60,7 +64,7 @@ struct SavedLocationsView: View {
         HStack {
             TextField("Search City ...", text: $searchText)
                 .padding(10)
-                .background(Color.white.opacity(0.8))
+                .background(Color.gray.opacity(0.8))
                 .cornerRadius(10)
                 .foregroundColor(.black)
                 .overlay(
@@ -87,7 +91,7 @@ struct SavedLocationsView: View {
             }
             .onDelete(perform: deleteCity) // Enable swipe to delete
         }
-        .listStyle(PlainListStyle())
+        .scrollContentBackground(.hidden)
     }
 
     // MARK: - Single Location Card UI
@@ -124,28 +128,40 @@ struct SavedLocationsView: View {
                 }
             }
             .padding()
-            .background(Color.white.opacity(0.3))
-            .cornerRadius(10)
+            .background(Color.purple.opacity(0.3))
+            .cornerRadius(12)
+            .shadow(radius: 4)
         }
     }
 
     // MARK: - Swipe to Delete Function
     private func deleteCity(at offsets: IndexSet) {
+        var cities = savedCities.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) }
+
         for index in offsets {
-            let cityToDelete = savedLocations[index].city
-            
-            // Convert savedCitiesData from JSON string to an array
-            var cities = savedCities
-            cities.removeAll { $0 == cityToDelete }
-            
-            // Convert back to JSON string for storage
-            if let encoded = try? JSONEncoder().encode(cities),
-               let jsonString = String(data: encoded, encoding: .utf8) {
-                savedCitiesData = jsonString // Update AppStorage
-            }
+            let cityToDelete = savedLocations[index].city.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // 🔹 Ensure case-insensitive deletion
+            cities.removeAll { $0.caseInsensitiveCompare(cityToDelete) == .orderedSame }
         }
-        savedLocations.remove(atOffsets: offsets) // Remove from UI list
+
+        // 🔹 Remove duplicates before saving
+        let uniqueCities = Array(Set(cities))
+
+        // 🔹 Save updated list back to AppStorage
+        if let encoded = try? JSONEncoder().encode(uniqueCities),
+           let jsonString = String(data: encoded, encoding: .utf8) {
+            savedCitiesData = jsonString
+        }
+
+        // 🔹 Remove locations that no longer exist in savedCities
+        savedLocations.removeAll { !uniqueCities.contains($0.city.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)) }
+
+        fetchWeatherForSavedLocations() // Refresh list
     }
+
+
+
 
         // MARK: - Convert Weather Description to SF Symbols
          func getWeatherIcon(for condition: String) -> String {
@@ -162,8 +178,12 @@ struct SavedLocationsView: View {
      func fetchWeatherForSavedLocations() {
         var updatedLocations: [WeatherData] = []
         let group = DispatchGroup()
-
+         
+        let currentCities = savedCities
+         
         for city in savedCities {
+            if !savedCities.contains(city) { continue }
+            
             group.enter()
             weatherService.fetchCurrentWeather(city: city) { weather in
                 if let weather = weather {

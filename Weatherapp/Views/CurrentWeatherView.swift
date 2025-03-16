@@ -41,7 +41,7 @@ struct CurrentWeatherView: View {
                         }
                     })
                     .padding(10)
-                    .background(Color.white.opacity(0.8))
+                    .background(Color.gray.opacity(0.8))
                     .cornerRadius(10)
                     .foregroundColor(.black)
                     
@@ -67,16 +67,17 @@ struct CurrentWeatherView: View {
                         Text(city)
                             .font(.title)
                             .bold()
-                        
+                            .foregroundColor(.black)
+
                         Text(weatherCondition)
                             .font(.subheadline)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(UIColor.darkGray))
                         
                         Image(systemName: getWeatherIcon(for: weatherCondition))
                             .resizable()
                             .scaledToFit()
                             .frame(width: 50, height: 50)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(UIColor.darkGray))
                     }
                     
                     Spacer()
@@ -123,18 +124,25 @@ struct CurrentWeatherView: View {
                                     Text(day.day)
                                         .font(.caption)
                                         .bold()
+                                        .foregroundColor(.white)
+                                    
                                     Text(day.high)
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                    
                                     Text(day.low)
-                                        .foregroundColor(.gray)
+                                        .font(.subheadline)
+                                        .foregroundColor(.white.opacity(0.7))
                                 }
+                                .frame(width: 60, height: 100) // 🔹 Ensures all boxes have the same size
                                 .padding()
-                                .frame(width: 60)
-                                .background(Color.white.opacity(0.3))
+                                .background(Color.white.opacity(0.2))
                                 .cornerRadius(10)
                             }
                         }
                         .padding(.horizontal)
                     }
+
                 }
                 .padding(.horizontal)
             }
@@ -186,32 +194,36 @@ struct CurrentWeatherView: View {
 
     // Process and Group Forecast Data
     private func processForecastData(_ forecastResponse: ForecastResponse) -> [(day: String, high: String, low: String)] {
-        var dailyForecast: [String: (high: Double, low: Double)] = [:]
+        var dailyForecast: [(date: Date, day: String, high: Double, low: Double)] = []
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
 
         let dayFormatter = DateFormatter()
-        dayFormatter.dateFormat = "E" // Extracts weekday name
+        dayFormatter.dateFormat = "E" // Extracts weekday name (e.g., Mon, Tue)
 
         for item in forecastResponse.list {
             if let date = dateFormatter.date(from: item.dt_txt) {
-                let dayKey = dayFormatter.string(from: date) // Convert to weekday name
+                let dayName = dayFormatter.string(from: date)
 
-                if dailyForecast[dayKey] == nil {
-                    dailyForecast[dayKey] = (high: item.main.temp, low: item.main.temp)
+                if let index = dailyForecast.firstIndex(where: { $0.day == dayName }) {
+                    // Update existing day with highest & lowest temperature
+                    dailyForecast[index].high = max(dailyForecast[index].high, item.main.temp)
+                    dailyForecast[index].low = min(dailyForecast[index].low, item.main.temp)
                 } else {
-                    dailyForecast[dayKey]!.high = max(dailyForecast[dayKey]!.high, item.main.temp)
-                    dailyForecast[dayKey]!.low = min(dailyForecast[dayKey]!.low, item.main.temp)
+                    // Add new entry
+                    dailyForecast.append((date: date, day: dayName, high: item.main.temp, low: item.main.temp))
                 }
             }
         }
 
-        // Sort forecast by weekday and limit to 7 days
-        return dailyForecast.sorted(by: { $0.key < $1.key }).prefix(7).map { (day, temps) in
-            return (day, String(format: "%.0f°C", temps.high), String(format: "%.0f°C", temps.low))
-        }
+        // 🔹 Sort forecast by actual date
+        let sortedForecast = dailyForecast.sorted(by: { $0.date < $1.date })
+
+        // Convert sorted data into the required format
+        return sortedForecast.map { (day: $0.day, high: String(format: "%.0f°C", $0.high), low: String(format: "%.0f°C", $0.low)) }
     }
+
 
     // Get SF Symbol for Weather Condition
     private func getWeatherIcon(for condition: String) -> String {
